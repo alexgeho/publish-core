@@ -1,5 +1,6 @@
 import { Controller, Get, Post, Body } from '@nestjs/common';
 import { PostsService } from './posts.service';
+import { CreatePostDto } from './dto/create-post.dto';
 
 /*
   Controller handles incoming HTTP requests.
@@ -19,22 +20,14 @@ export class PostsController {
     Creates a new scheduled post.
     Expects title, content, and publishAt in request body.
   */
-  @Post()
-  create(
-    @Body('title') title: string,
-    @Body('content') content: string,
-    @Body('publishAt') publishAt: string,
-  ) {
-    /*
-      Convert publishAt string into Date
-      and forward data to the service layer.
-    */
-    return this.postsService.create(
-      title,
-      content,
-      new Date(publishAt),
-    );
-  }
+@Post()
+create(@Body() body: CreatePostDto) {
+  return this.postsService.create(
+    body.title,
+    body.content,
+    new Date(body.publishAt),
+  );
+}
 
   /*
     GET /posts
