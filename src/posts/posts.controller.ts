@@ -1,4 +1,48 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
+import { PostsService } from './posts.service';
 
+/*
+  Controller handles incoming HTTP requests.
+  All routes here will start with /posts.
+*/
 @Controller('posts')
-export class PostsController {}
+export class PostsController {
+
+  /*
+    Inject PostsService to delegate business logic.
+    Controller should not contain logic itself.
+  */
+  constructor(private readonly postsService: PostsService) {}
+
+  /*
+    POST /posts
+    Creates a new scheduled post.
+    Expects title, content, and publishAt in request body.
+  */
+  @Post()
+  create(
+    @Body('title') title: string,
+    @Body('content') content: string,
+    @Body('publishAt') publishAt: string,
+  ) {
+    /*
+      Convert publishAt string into Date
+      and forward data to the service layer.
+    */
+    return this.postsService.create(
+      title,
+      content,
+      new Date(publishAt),
+    );
+  }
+
+  /*
+    GET /posts
+    Returns all stored posts.
+    Used mainly for testing and debugging.
+  */
+  @Get()
+  findAll() {
+    return this.postsService.findAll();
+  }
+}
