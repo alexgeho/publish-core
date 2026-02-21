@@ -26,7 +26,6 @@ export class PostsController {
             excerpt: 'Kort beskrivning...',
             content: '<p>Detta är en testartikel.</p>',
             date: '21 Feb 2026',
-            slug: 'test-post'
         });
 
         return { ok: true };
@@ -39,11 +38,15 @@ export class PostsController {
     */
     @Post()
     create(@Body() body: CreatePostDto) {
-        return this.postsService.create(
-            body.title,
-            body.content,
-            new Date(body.publishAt),
-        );
+
+        this.publisherService.publish({
+            title: body.title,
+            excerpt: body.excerpt,
+            content: body.content,
+            date: body.date,
+        });
+
+        return { ok: true };
     }
 
     /*
