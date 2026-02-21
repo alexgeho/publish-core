@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <title>Publish Post</title>
+  <style>
+    body { font-family: Inter, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f8fafc; }
+    h1 { font-size: 1.8rem; margin-bottom: 24px; }
+    label { display: block; margin-top: 16px; font-weight: 600; font-size: 0.9rem; color: #444; }
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background: #fff;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #1f5edc;
+      box-shadow: 0 0 0 3px rgba(31, 94, 220, 0.12);
+    }
+    textarea { min-height: 200px; resize: vertical; }
+    button {
+      margin-top: 24px;
+      width: 100%;
+      padding: 14px;
+      background: #1f5edc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: #174bb5; }
+    #result { margin-top: 16px; padding: 12px 16px; border-radius: 8px; display: none; font-weight: 500; }
+    .ok  { background: #d4edda; color: #155724; }
+    .err { background: #f8d7da; color: #721c24; }
+  </style>
+</head>
+<body>
+
+  <h1>Publish Post</h1>
+
+  <label>Title</label>
+  <input type="text" id="title" placeholder="Takrenovering i Stockholm 2026">
+
+  <label>Excerpt</label>
+  <input type="text" id="excerpt" placeholder="Kort beskrivning...">
+
+  <label>Date</label>
+  <input type="date" id="date">
+
+  <label>Content (HTML)</label>
+  <textarea id="content" placeholder="<p>Artikelns innehåll...</p>"></textarea>
+
+  <button onclick="handlePublish()">Publicera</button>
+
+  <div id="result"></div>
+
+  <script>
+    // Set today's date as default
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+    async function handlePublish() {
+      const title   = document.getElementById('title').value.trim();
+      const excerpt = document.getElementById('excerpt').value.trim();
+      const date    = document.getElementById('date').value;
+      const content = document.getElementById('content').value.trim();
+
+      const result = document.getElementById('result');
+
+      // Basic validation
+      if (!title || !excerpt || !date || !content) {
+        result.style.display = 'block';
+        result.className = 'err';
+        result.textContent = 'Fyll i alla fält.';
+        return;
+      }
+
+      const res = await fetch('http://localhost:3000/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, excerpt, date, content }),
+      });
+
+      result.style.display = 'block';
+
+      if (res.ok) {
+        result.className = 'ok';
+        result.textContent = `✔ "${title}" publicerades!`;
+      } else {
+        result.className = 'err';
+        result.textContent = 'Fel vid publicering. Kontrollera att servern körs.';
+      }
+    }
+  </script>
+
+</body>
+</html>

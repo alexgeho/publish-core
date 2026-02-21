@@ -5,7 +5,7 @@ export class CreatePostDto {
   @ApiProperty({ example: 'My first article' })
   title: string;
 
-  @ApiProperty({ example: 'Few important words for intrege ...' })
+  @ApiProperty({ example: 'A few important words to spark interest...' })
   excerpt: string;
 
   @ApiProperty({ example: 'This is article content...' })
