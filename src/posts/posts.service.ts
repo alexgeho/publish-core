@@ -1,80 +1,37 @@
 import { Injectable } from '@nestjs/common';
-
-/*
-  Post interface defines the structure of a blog post
-  stored inside our in-memory array.
-*/
-export interface BlogPost {
-    id: number;
-    title: string;
-    content: string;
-    publishAt: Date;
-    status: 'scheduled' | 'published';
-}
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { Post, PostDocument } from './schemas/post.schema';
+import { CreatePostDto } from './dto/create-post.dto';
 
 @Injectable()
 export class PostsService {
 
-    constructor() {
-        setInterval(() => {
-            this.publishDuePosts();
-        }, 60000);
-    }
+  constructor(
+    @InjectModel(Post.name) private postModel: Model<PostDocument>
+  ) {}
 
-    /*
-      In-memory storage for posts.
-      This replaces a real database for MVP.
-    */
-    private posts: BlogPost[] = [];
+  // Save new post to MongoDB with draft status
+  async create(dto: CreatePostDto, slug: string): Promise<Post> {
+    return this.postModel.create({ ...dto, slug, status: 'draft' });
+  }
 
-    /*
-      Simple counter to generate unique IDs.
-      In real projects, the database handles this.
-    */
-    private idCounter = 1;
+  // Return all posts sorted by newest first
+  async findAll(): Promise<Post[]> {
+    return this.postModel.find().sort({ createdAt: -1 });
+  }
 
-    /*
-      Create a new scheduled post.
-      The post is saved with status "scheduled"
-      and will be published later by the scheduler.
-    */
-    create(title: string, content: string, publishAt: Date) {
-        const newPost: BlogPost = {
-            id: this.idCounter++,
-            title,
-            content,
-            publishAt,
-            status: 'scheduled',
-        };
+  // Return only drafts for admin panel
+  async findDrafts(): Promise<Post[]> {
+    return this.postModel.find({ status: 'draft' }).sort({ createdAt: -1 });
+  }
 
-        this.posts.push(newPost);
-        return newPost;
-    }
-
-    /*
-      Return all posts.
-      Used for debugging and testing.
-    */
-    findAll() {
-        return this.posts;
-    }
-
-    /*
-      Check for posts that are ready to be published.
-      If publish time has arrived, update status to "published".
-      In real system, this is where publishing logic would run.
-    */
-    publishDuePosts() {
-        const now = new Date();
-
-        this.posts.forEach((post) => {
-            if (
-                post.status === 'scheduled' &&
-                post.publishAt <= now
-            ) {
-                post.status = 'published';
-                console.log(`Published post ${post.id}`);
-            }
-        });
-    }
+  // Mark post as published
+  async markPublished(id: string): Promise<Post | null> {
+    return this.postModel.findByIdAndUpdate(
+      id,
+      { status: 'published' },
+      { new: true }
+    );
+  }
 }

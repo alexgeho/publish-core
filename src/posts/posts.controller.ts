@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PublisherService } from './publisher.service';
@@ -13,15 +13,35 @@ export class PostsController {
     private readonly publisherService: PublisherService,
   ) {}
 
+  // Save post to MongoDB as draft
   @Post()
-  @ApiOperation({ summary: 'Publish a new blog post to the site' })
-  create(@Body() body: CreatePostDto) {
-    this.publisherService.publish(body);
+  @ApiOperation({ summary: 'Save post as draft' })
+  async create(@Body() body: CreatePostDto) {
+    const slug = this.publisherService.generateSlug(body.title);
+    return this.postsService.create(body, slug);
+  }
+
+  // Get all drafts for admin panel
+  @Get('drafts')
+  @ApiOperation({ summary: 'Get all drafts' })
+  async findDrafts() {
+    return this.postsService.findDrafts();
+  }
+
+  // Publish draft to site by MongoDB id
+  @Post(':id/publish')
+  @ApiOperation({ summary: 'Publish draft to site' })
+  async publish(@Param('id') id: string) {
+    const post = await this.postsService.markPublished(id);
+    if (!post) throw new Error(`Post ${id} not found`);
+    this.publisherService.publish(post);
     return { ok: true };
   }
 
+  // Get all posts
   @Get()
-  findAll() {
+  @ApiOperation({ summary: 'Get all posts' })
+  async findAll() {
     return this.postsService.findAll();
   }
 }

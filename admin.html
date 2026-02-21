@@ -4,41 +4,39 @@
   <meta charset="UTF-8">
   <title>Publish Post</title>
   <style>
-    body { font-family: Inter, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; background: #f8fafc; }
-    h1 { font-size: 1.8rem; margin-bottom: 24px; }
+    body { font-family: Inter, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f8fafc; }
+    h1, h2 { margin-bottom: 16px; }
     label { display: block; margin-top: 16px; font-weight: 600; font-size: 0.9rem; color: #444; }
     input, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      margin-top: 6px;
-      border: 1px solid #e5e7eb;
-      border-radius: 8px;
-      font-size: 1rem;
-      box-sizing: border-box;
-      background: #fff;
+      width: 100%; padding: 10px 12px; margin-top: 6px;
+      border: 1px solid #e5e7eb; border-radius: 8px;
+      font-size: 1rem; box-sizing: border-box; background: #fff;
     }
     input:focus, textarea:focus {
-      outline: none;
-      border-color: #1f5edc;
-      box-shadow: 0 0 0 3px rgba(31, 94, 220, 0.12);
+      outline: none; border-color: #1f5edc;
+      box-shadow: 0 0 0 3px rgba(31,94,220,0.12);
     }
     textarea { min-height: 200px; resize: vertical; }
-    button {
-      margin-top: 24px;
-      width: 100%;
-      padding: 14px;
-      background: #1f5edc;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
+    .btn {
+      padding: 10px 20px; border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
     }
-    button:hover { background: #174bb5; }
+    .btn-primary { background: #1f5edc; color: #fff; width: 100%; margin-top: 24px; padding: 14px; }
+    .btn-primary:hover { background: #174bb5; }
+    .btn-publish { background: #16a34a; color: #fff; font-size: 0.85rem; padding: 6px 14px; }
+    .btn-publish:hover { background: #15803d; }
     #result { margin-top: 16px; padding: 12px 16px; border-radius: 8px; display: none; font-weight: 500; }
     .ok  { background: #d4edda; color: #155724; }
     .err { background: #f8d7da; color: #721c24; }
+    .drafts { margin-top: 48px; }
+    .draft-card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 16px 20px; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .draft-card h3 { margin: 0 0 4px; font-size: 1rem; }
+    .draft-card p { margin: 0; color: #888; font-size: 0.85rem; }
+    .draft-info { flex: 1; }
   </style>
 </head>
 <body>
@@ -57,23 +55,27 @@
   <label>Content (HTML)</label>
   <textarea id="content" placeholder="<p>Artikelns innehåll...</p>"></textarea>
 
-  <button onclick="handlePublish()">Publicera</button>
+  <button class="btn btn-primary" onclick="handleSaveDraft()">Spara utkast</button>
 
   <div id="result"></div>
 
+  <div class="drafts">
+    <h2>Utkast</h2>
+    <div id="drafts-list">Laddar...</div>
+  </div>
+
   <script>
-    // Set today's date as default
+    const API = 'http://localhost:3000';
+
     document.getElementById('date').value = new Date().toISOString().split('T')[0];
 
-    async function handlePublish() {
+    async function handleSaveDraft() {
       const title   = document.getElementById('title').value.trim();
       const excerpt = document.getElementById('excerpt').value.trim();
       const date    = document.getElementById('date').value;
       const content = document.getElementById('content').value.trim();
+      const result  = document.getElementById('result');
 
-      const result = document.getElementById('result');
-
-      // Basic validation
       if (!title || !excerpt || !date || !content) {
         result.style.display = 'block';
         result.className = 'err';
@@ -81,7 +83,7 @@
         return;
       }
 
-      const res = await fetch('http://localhost:3000/posts', {
+      const res = await fetch(`${API}/posts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title, excerpt, date, content }),
@@ -91,12 +93,49 @@
 
       if (res.ok) {
         result.className = 'ok';
-        result.textContent = `✔ "${title}" publicerades!`;
+        result.textContent = `✔ "${title}" sparad som utkast.`;
+        loadDrafts();
       } else {
         result.className = 'err';
-        result.textContent = 'Fel vid publicering. Kontrollera att servern körs.';
+        result.textContent = 'Fel. Kontrollera att servern körs.';
       }
     }
+
+    async function handlePublish(id, title) {
+      const res = await fetch(`${API}/posts/${id}/publish`, { method: 'POST' });
+
+      if (res.ok) {
+        alert(`✔ "${title}" publicerades!`);
+        loadDrafts();
+      } else {
+        alert('Fel vid publicering.');
+      }
+    }
+
+    async function loadDrafts() {
+      const res = await fetch(`${API}/posts/drafts`);
+      const drafts = await res.json();
+      const list = document.getElementById('drafts-list');
+
+      if (!drafts.length) {
+        list.innerHTML = '<p style="color:#888">Inga utkast.</p>';
+        return;
+      }
+
+      list.innerHTML = drafts.map(d => `
+        <div class="draft-card">
+          <div class="draft-info">
+            <h3>${d.title}</h3>
+            <p>${d.date} &middot; ${d.excerpt}</p>
+          </div>
+          <button class="btn btn-publish" onclick="handlePublish('${d._id}', '${d.title}')">
+            Publicera
+          </button>
+        </div>
+      `).join('');
+    }
+
+    loadDrafts();
   </script>
 
 </body>

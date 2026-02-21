@@ -74,7 +74,7 @@ export class PublisherService {
     fs.writeFileSync(INDEX_PATH, updatedHtml);
   }
 
-  private generateSlug(title: string): string {
+  public generateSlug(title: string): string {
     return title
       .toLowerCase()
       .replace(/å|ä/g, 'a')
