@@ -28,7 +28,7 @@ export class PublisherService {
       .replace(/{{content}}/g, post.content);
 
     await this.gitHubService.createOrUpdateFile(
-      `blogg/${slug}.html`,
+      `blog/${slug}.html`,
       html,
       `feat(blog): publish ${slug}`,
     );
@@ -45,11 +45,11 @@ export class PublisherService {
     const newCard = `
 <li class="blog-item">
   <h3>
-    <a href="/blogg/${slug}.html">${post.title}</a>
+    <a href="/blog/${slug}.html">${post.title}</a>
   </h3>
   <p class="blog-date">${post.date}</p>
   <p>${post.excerpt}</p>
-  <a href="/blogg/${slug}.html">Läs mer →</a>
+  <a href="/blog/${slug}.html">Läs mer →</a>
 </li>
 `;
 
