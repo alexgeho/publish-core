@@ -3,140 +3,335 @@
 <head>
   <meta charset="UTF-8">
   <title>Publish Post</title>
+
   <style>
-    body { font-family: Inter, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #f8fafc; }
+    body {
+      font-family: Inter, sans-serif;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #f8fafc;
+    }
+
     h1, h2 { margin-bottom: 16px; }
-    label { display: block; margin-top: 16px; font-weight: 600; font-size: 0.9rem; color: #444; }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      background: #fff;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .tab-btn.active {
+      background: #1f5edc;
+      color: #fff;
+      border-color: #1f5edc;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    label {
+      display: block;
+      margin-top: 16px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #444;
+    }
+
     input, textarea {
-      width: 100%; padding: 10px 12px; margin-top: 6px;
-      border: 1px solid #e5e7eb; border-radius: 8px;
-      font-size: 1rem; box-sizing: border-box; background: #fff;
+      width: 100%;
+      padding: 10px 12px;
+      margin-top: 6px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      background: #fff;
     }
-    input:focus, textarea:focus {
-      outline: none; border-color: #1f5edc;
-      box-shadow: 0 0 0 3px rgba(31,94,220,0.12);
+
+    textarea {
+      min-height: 200px;
+      resize: vertical;
     }
-    textarea { min-height: 200px; resize: vertical; }
+
     .btn {
-      padding: 10px 20px; border: none; border-radius: 8px;
-      font-size: 1rem; font-weight: 600; cursor: pointer;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
     }
-    .btn-primary { background: #1f5edc; color: #fff; width: 100%; margin-top: 24px; padding: 14px; }
-    .btn-primary:hover { background: #174bb5; }
-    .btn-publish { background: #16a34a; color: #fff; font-size: 0.85rem; padding: 6px 14px; }
-    .btn-publish:hover { background: #15803d; }
-    #result { margin-top: 16px; padding: 12px 16px; border-radius: 8px; display: none; font-weight: 500; }
+
+    .btn-primary {
+      background: #1f5edc;
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      background: #174bb5;
+    }
+
+    .btn-publish {
+      background: #16a34a;
+      color: #fff;
+      font-size: 0.85rem;
+      padding: 6px 14px;
+    }
+
+    .drafts { margin-top: 48px; }
+
+    .draft-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .draft-info { flex: 1; }
+
+    #result {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 8px;
+      display: none;
+      font-weight: 500;
+    }
+
     .ok  { background: #d4edda; color: #155724; }
     .err { background: #f8d7da; color: #721c24; }
-    .drafts { margin-top: 48px; }
-    .draft-card {
-      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
-      padding: 16px 20px; margin-bottom: 12px;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .draft-card h3 { margin: 0 0 4px; font-size: 1rem; }
-    .draft-card p { margin: 0; color: #888; font-size: 0.85rem; }
-    .draft-info { flex: 1; }
   </style>
 </head>
+
 <body>
 
-  <h1>Publish Post</h1>
+<h1>Content Manager</h1>
+
+<div class="tabs">
+  <button class="tab-btn active" data-tab="editor">Editor</button>
+  <button class="tab-btn" data-tab="ai">AI Generator</button>
+</div>
+
+<!-- EDITOR -->
+<div class="tab-content active" id="editor">
 
   <label>Title</label>
-  <input type="text" id="title" placeholder="Takrenovering i Stockholm 2026">
+  <input type="text" id="title">
 
   <label>Excerpt</label>
-  <input type="text" id="excerpt" placeholder="Kort beskrivning...">
+  <input type="text" id="excerpt">
 
   <label>Date</label>
   <input type="date" id="date">
 
   <label>Content (HTML)</label>
-  <textarea id="content" placeholder="<p>Artikelns innehåll...</p>"></textarea>
+  <textarea id="content"></textarea>
 
-  <button class="btn btn-primary" onclick="handleSaveDraft()">Spara utkast</button>
+  <button class="btn btn-primary" id="saveDraftBtn">
+    Save Draft
+  </button>
 
   <div id="result"></div>
 
   <div class="drafts">
-    <h2>Utkast</h2>
-    <div id="drafts-list">Laddar...</div>
+    <h2>Drafts</h2>
+    <div id="drafts-list">Loading...</div>
   </div>
 
-  <script>
-    const API = 'http://localhost:3000';
+</div>
 
-    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+<!-- AI -->
+<div class="tab-content" id="ai">
 
-    async function handleSaveDraft() {
-      const title   = document.getElementById('title').value.trim();
-      const excerpt = document.getElementById('excerpt').value.trim();
-      const date    = document.getElementById('date').value;
-      const content = document.getElementById('content').value.trim();
-      const result  = document.getElementById('result');
+  <label>Title</label>
+  <input type="text" id="ai-title">
 
-      if (!title || !excerpt || !date || !content) {
-        result.style.display = 'block';
-        result.className = 'err';
-        result.textContent = 'Fyll i alla fält.';
-        return;
-      }
+  <label>Approx. characters</label>
+  <input type="number" id="ai-length" value="4000">
 
-      const res = await fetch(`${API}/posts`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, excerpt, date, content }),
+  <label>Language</label>
+  <input type="text" id="ai-language" value="sv">
+
+  <button class="btn btn-primary" id="generateBtn">
+    Generate Article
+  </button>
+
+</div>
+
+<script>
+  const API = 'http://localhost:3000';
+
+  function initDate() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date').value = today;
+  }
+
+  function initTabs() {
+    const buttons = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    function activateTab(tabId) {
+      buttons.forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.tab === tabId);
       });
 
-      result.style.display = 'block';
-
-      if (res.ok) {
-        result.className = 'ok';
-        result.textContent = `✔ "${title}" sparad som utkast.`;
-        loadDrafts();
-      } else {
-        result.className = 'err';
-        result.textContent = 'Fel. Kontrollera att servern körs.';
-      }
+      contents.forEach(function(content) {
+        content.classList.toggle('active', content.id === tabId);
+      });
     }
 
-    async function handlePublish(id, title) {
-      const res = await fetch(`${API}/posts/${id}/publish`, { method: 'POST' });
+    buttons.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        activateTab(btn.dataset.tab);
+      });
+    });
+  }
 
-      if (res.ok) {
-        alert(`✔ "${title}" publicerades!`);
-        loadDrafts();
-      } else {
-        alert('Fel vid publicering.');
-      }
+  async function handleSaveDraft() {
+    const title = document.getElementById('title').value.trim();
+    const excerpt = document.getElementById('excerpt').value.trim();
+    const date = document.getElementById('date').value;
+    const content = document.getElementById('content').value.trim();
+    const result = document.getElementById('result');
+
+    if (!title || !excerpt || !date || !content) {
+      showResult('All fields required', false);
+      return;
     }
 
-    async function loadDrafts() {
-      const res = await fetch(`${API}/posts/drafts`);
-      const drafts = await res.json();
-      const list = document.getElementById('drafts-list');
+    const response = await fetch(API + '/posts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, excerpt, date, content })
+    });
 
-      if (!drafts.length) {
-        list.innerHTML = '<p style="color:#888">Inga utkast.</p>';
-        return;
-      }
-
-      list.innerHTML = drafts.map(d => `
-        <div class="draft-card">
-          <div class="draft-info">
-            <h3>${d.title}</h3>
-            <p>${d.date} &middot; ${d.excerpt}</p>
-          </div>
-          <button class="btn btn-publish" onclick="handlePublish('${d._id}', '${d.title}')">
-            Publicera
-          </button>
-        </div>
-      `).join('');
+    if (!response.ok) {
+      showResult('Server error', false);
+      return;
     }
 
+    showResult('Draft saved', true);
     loadDrafts();
-  </script>
+  }
+
+  async function handleGenerate() {
+    const title = document.getElementById('ai-title').value.trim();
+    const length = document.getElementById('ai-length').value;
+    const language = document.getElementById('ai-language').value;
+
+    if (!title) {
+      alert('Title required');
+      return;
+    }
+
+    const response = await fetch(API + '/ai/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, length, language })
+    });
+
+    if (!response.ok) {
+      alert('AI error');
+      return;
+    }
+
+    const data = await response.json();
+
+    document.getElementById('title').value = title;
+    document.getElementById('content').value = data.content;
+
+    switchToEditor();
+  }
+
+  function switchToEditor() {
+    document.querySelector('[data-tab="editor"]').click();
+  }
+
+  function showResult(message, success) {
+    const result = document.getElementById('result');
+    result.style.display = 'block';
+    result.textContent = message;
+    result.className = success ? 'ok' : 'err';
+  }
+
+  async function handlePublish(id) {
+    await fetch(API + '/posts/' + id + '/publish', { method: 'POST' });
+    loadDrafts();
+  }
+
+  async function loadDrafts() {
+    const res = await fetch(API + '/posts/drafts');
+    const drafts = await res.json();
+    const list = document.getElementById('drafts-list');
+
+    if (!drafts.length) {
+      list.innerHTML = '<p>No drafts</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+
+    drafts.forEach(function(d) {
+      const card = document.createElement('div');
+      card.className = 'draft-card';
+
+      const info = document.createElement('div');
+      info.className = 'draft-info';
+
+      const title = document.createElement('h3');
+      title.textContent = d.title;
+
+      const meta = document.createElement('p');
+      meta.textContent = d.date + ' · ' + d.excerpt;
+
+      const btn = document.createElement('button');
+      btn.className = 'btn btn-publish';
+      btn.textContent = 'Publish';
+      btn.addEventListener('click', function() {
+        handlePublish(d._id);
+      });
+
+      info.appendChild(title);
+      info.appendChild(meta);
+
+      card.appendChild(info);
+      card.appendChild(btn);
+
+      list.appendChild(card);
+    });
+  }
+
+  function init() {
+    initDate();
+    initTabs();
+    loadDrafts();
+
+    document
+      .getElementById('saveDraftBtn')
+      .addEventListener('click', handleSaveDraft);
+
+    document
+      .getElementById('generateBtn')
+      .addEventListener('click', handleGenerate);
+  }
+
+  init();
+</script>
 
 </body>
 </html>
