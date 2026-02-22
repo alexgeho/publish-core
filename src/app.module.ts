@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { AiModule } from './ai/ai.module'
 
 
 @Module({
@@ -22,6 +23,7 @@ import { join } from 'path';
 
 
     PostsModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
