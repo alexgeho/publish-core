@@ -45,9 +45,7 @@ export class PostsService {
       throw new Error('Draft not found');
     }
 
-    const galleryImagesArray = draft.galleryImages
-      ? draft.galleryImages.split(',').map(img => img.trim())
-      : [];
+   const galleryImagesArray = draft.galleryImages || [];
 
     await this.publisherService.publish({
       title: draft.title,
