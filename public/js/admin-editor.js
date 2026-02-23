@@ -138,7 +138,7 @@ async function loadPublished() {
 
       div.innerHTML = `
         <strong>${post.title}</strong>
-        <button onclick="deletePublished('${post._id}')">
+        <button onclick="deletePublished('${post.slug}')">
           Delete
         </button>
       `;
@@ -152,10 +152,10 @@ async function loadPublished() {
   }
 }
 
-async function deletePublished(id) {
+async function deletePublished(slug) {
   if (!confirm('Delete this article?')) return;
 
-  await fetch('/posts/' + id, { method: 'DELETE' });
+  await fetch('/posts/' + slug, { method: 'DELETE' });
   loadPublished();
 }
 

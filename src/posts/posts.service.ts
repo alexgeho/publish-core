@@ -15,6 +15,7 @@ export class PostsService {
 
   async deletePublishedPost(slug: string) {
     await this.publisherService.deletePost(slug);
+    await this.postModel.deleteOne({ slug });
   }
 
   async create(dto: CreatePostDto): Promise<Post> {
@@ -48,25 +49,23 @@ export class PostsService {
   }
 
   async publishDraft(id: string) {
+  const draft = await this.postModel.findById(id);
 
-    const draft = await this.postModel.findById(id);
-
-    if (!draft) {
-      throw new Error('Draft not found');
-    }
-
-    const galleryImagesArray = draft.galleryImages || [];
-
-    await this.publisherService.publish({
-      title: draft.title,
-      excerpt: draft.excerpt,
-      date: draft.date,
-      content: draft.content,
-      coverImage: draft.coverImage,
-      galleryImages: galleryImagesArray,
-      slug: draft.slug
-    });
-
-    await draft.deleteOne();
+  if (!draft) {
+    throw new Error('Draft not found');
   }
+
+  await this.publisherService.publish({
+    title: draft.title,
+    excerpt: draft.excerpt,
+    date: draft.date,
+    content: draft.content,
+    coverImage: draft.coverImage,
+    galleryImages: draft.galleryImages || [],
+    slug: draft.slug
+  });
+
+  draft.status = 'published';
+  await draft.save();
+}
 }
