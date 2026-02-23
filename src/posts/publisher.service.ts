@@ -15,6 +15,36 @@ export class PublisherService {
       `blog/${slug}.html`,
       `chore(blog): delete ${slug}`
     );
+    await this.removeFromHomePage(slug);
+  }
+
+  private async removeFromHomePage(slug: string) {
+    const filePath = 'index.html';
+    const existingFile = await this.gitHubService.getFileContent(filePath);
+
+    const startMarker = '<!-- BLOG_HOME_START -->';
+    const endMarker = '<!-- BLOG_HOME_END -->';
+
+    const before = existingFile.split(startMarker)[0] + startMarker;
+    const middle = existingFile.split(startMarker)[1].split(endMarker)[0];
+    const after = endMarker + existingFile.split(endMarker)[1];
+
+    const existingCards = middle
+      .split('<li class="blog-item">')
+      .filter(function (s) { return s.trim().length > 0; })
+      .map(function (card) { return '<li class="blog-item">' + card.trim(); });
+
+    const filteredCards = existingCards.filter(function (card) {
+      return !card.includes('/blog/' + slug + '.html');
+    });
+
+    const updatedHtml = before + '\n' + filteredCards.join('\n') + '\n' + after;
+
+    await this.gitHubService.createOrUpdateFile(
+      filePath,
+      updatedHtml,
+      'chore(blog): remove ' + slug + ' from homepage',
+    );
   }
 
   async publish(post: PublishPost) {
@@ -39,7 +69,7 @@ export class PublisherService {
       ? `
         <div class="blog-gallery">
           ${post.galleryImages
-        .map((img: string) => `<img src="${img}" alt="">`)
+        .map(function (img: string) { return `<img src="${img}" alt="">`; })
         .join('')}
         </div>
         `
@@ -89,10 +119,15 @@ export class PublisherService {
 
     const existingCards = middle
       .split('<li class="blog-item">')
-      .filter((s: string) => s.trim().length > 0)
-      .map((card: string) => '<li class="blog-item">' + card.trim());
+      .filter(function (s: string) { return s.trim().length > 0; })
+      .map(function (card: string) { return '<li class="blog-item">' + card.trim(); });
 
-    const updatedCards = [newCard.trim(), ...existingCards].slice(0, 7);
+    // Remove existing card with same slug to prevent duplicates
+    const filteredCards = existingCards.filter(function (card: string) {
+      return !card.includes('/blog/' + slug + '.html');
+    });
+
+    const updatedCards = [newCard.trim(), ...filteredCards].slice(0, 7);
 
     const updatedHtml =
       before +
