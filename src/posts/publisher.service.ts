@@ -10,6 +10,13 @@ export class PublisherService {
 
   constructor(private readonly gitHubService: GitHubService) { }
 
+  async deletePost(slug: string) {
+    await this.gitHubService.deleteFile(
+      `blog/${slug}.html`,
+      `chore(blog): delete ${slug}`
+    );
+  }
+
   async publish(post: PublishPost) {
 
     const slug = post.slug;
@@ -47,7 +54,7 @@ export class PublisherService {
       .replace(/{{image}}/g, coverImageHtml)
       .replace(/{{gallery}}/g, galleryHtml)
       .replace(/{{content}}/g, parsedContent);
-      
+
     await this.gitHubService.createOrUpdateFile(
       `blog/${slug}.html`,
       html,

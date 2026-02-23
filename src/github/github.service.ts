@@ -3,9 +3,43 @@ import { Octokit } from '@octokit/rest';
 
 @Injectable()
 export class GitHubService {
+
+    private readonly owner = process.env.GITHUB_OWNER!;
+    private readonly repo = process.env.GITHUB_REPO!;
+    private readonly branch = process.env.GITHUB_BRANCH || 'main';
+
     private octokit = new Octokit({
         auth: process.env.GITHUB_TOKEN,
     });
+
+    async getFileMeta(path: string) {
+        const response = await this.octokit.repos.getContent({
+            owner: this.owner,
+            repo: this.repo,
+            path,
+            ref: this.branch,
+        });
+
+        if (!('sha' in response.data)) {
+            throw new Error('Invalid file response');
+        }
+
+        return response.data;
+    }
+
+    async deleteFile(path: string, message: string) {
+
+        const file = await this.getFileMeta(path);
+
+        await this.octokit.repos.deleteFile({
+            owner: this.owner,
+            repo: this.repo,
+            path,
+            message,
+            sha: file.sha,
+            branch: this.branch,
+        });
+    }
 
     async createOrUpdateFile(
         filePath: string,

@@ -14,8 +14,8 @@ function collectEditorData() {
       .getElementById('galleryImages')
       .value
       .split(',')
-      .map(function(i) { return i.trim(); })
-      .filter(function(i) { return i.length > 0; })
+      .map(function (i) { return i.trim(); })
+      .filter(function (i) { return i.length > 0; })
   };
 }
 
@@ -25,6 +25,10 @@ function showResult(message, success) {
   result.textContent = message;
   result.className = success ? 'ok' : 'err';
 }
+
+/* ===========================
+   SAVE DRAFT
+=========================== */
 
 async function handleSaveDraft() {
   const data = collectEditorData();
@@ -51,11 +55,16 @@ async function handleSaveDraft() {
   }
 }
 
+/* ===========================
+   DRAFTS
+=========================== */
+
 async function handlePublish(id) {
   try {
     await fetch('/posts/' + id + '/publish', { method: 'POST' });
     loadDrafts();
-  } catch {}
+    loadPublished();
+  } catch { }
 }
 
 async function loadDrafts() {
@@ -71,7 +80,7 @@ async function loadDrafts() {
 
     list.innerHTML = '';
 
-    drafts.forEach(function(d) {
+    drafts.forEach(function (d) {
       const card = document.createElement('div');
       card.className = 'draft-card';
 
@@ -87,7 +96,7 @@ async function loadDrafts() {
       const btn = document.createElement('button');
       btn.className = 'btn btn-publish';
       btn.textContent = 'Publish';
-      btn.addEventListener('click', function() {
+      btn.addEventListener('click', function () {
         handlePublish(d._id);
       });
 
@@ -106,7 +115,55 @@ async function loadDrafts() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+/* ===========================
+   PUBLISHED ARTICLES
+=========================== */
+
+async function loadPublished() {
+  try {
+    const res = await fetch('/posts/published');
+    const posts = await res.json();
+    const list = document.getElementById('articles-list');
+
+    if (!posts.length) {
+      list.innerHTML = '<p>No articles</p>';
+      return;
+    }
+
+    list.innerHTML = '';
+
+    posts.forEach(function (post) {
+      const div = document.createElement('div');
+      div.style.marginBottom = '15px';
+
+      div.innerHTML = `
+        <strong>${post.title}</strong>
+        <button onclick="deletePublished('${post._id}')">
+          Delete
+        </button>
+      `;
+
+      list.appendChild(div);
+    });
+
+  } catch {
+    document.getElementById('articles-list').innerHTML =
+      '<p>Error loading articles</p>';
+  }
+}
+
+async function deletePublished(id) {
+  if (!confirm('Delete this article?')) return;
+
+  await fetch('/posts/' + id, { method: 'DELETE' });
+  loadPublished();
+}
+
+/* ===========================
+   INIT
+=========================== */
+
+document.addEventListener('DOMContentLoaded', function () {
   initDate();
   loadDrafts();
 

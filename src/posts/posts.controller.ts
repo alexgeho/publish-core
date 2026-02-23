@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -9,7 +9,7 @@ export class PostsController {
 
   constructor(
     private readonly postsService: PostsService,
-  ) {}
+  ) { }
 
   // Save post to MongoDB as draft
   @Post()
@@ -39,4 +39,16 @@ export class PostsController {
   async findAll() {
     return this.postsService.findAll();
   }
+
+  @Delete(':slug')
+  delete(@Param('slug') slug: string) {
+    return this.postsService.deletePublishedPost(slug);
+  }
+
+  @Get('published')
+  async getPublished() {
+    return this.postsService.findPublished();
+  }
+
 }
+

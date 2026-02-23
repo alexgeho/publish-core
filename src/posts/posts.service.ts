@@ -11,7 +11,11 @@ export class PostsService {
   constructor(
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
     private readonly publisherService: PublisherService,
-  ) {}
+  ) { }
+
+  async deletePublishedPost(slug: string) {
+    await this.publisherService.deletePost(slug);
+  }
 
   async create(dto: CreatePostDto): Promise<Post> {
 
@@ -27,6 +31,12 @@ export class PostsService {
       slug,
       status: 'draft'
     });
+  }
+
+  async findPublished(): Promise<Post[]> {
+    return this.postModel
+      .find({ status: 'published' })
+      .sort({ createdAt: -1 });
   }
 
   async findAll(): Promise<Post[]> {
@@ -45,7 +55,7 @@ export class PostsService {
       throw new Error('Draft not found');
     }
 
-   const galleryImagesArray = draft.galleryImages || [];
+    const galleryImagesArray = draft.galleryImages || [];
 
     await this.publisherService.publish({
       title: draft.title,
@@ -54,7 +64,7 @@ export class PostsService {
       content: draft.content,
       coverImage: draft.coverImage,
       galleryImages: galleryImagesArray,
-      slug: draft.slug  
+      slug: draft.slug
     });
 
     await draft.deleteOne();
