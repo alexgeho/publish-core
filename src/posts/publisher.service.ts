@@ -3,15 +3,16 @@ import { PublishPost } from './interfaces/publish-post.interface';
 import { GitHubService } from '../github/github.service';
 import * as fs from 'fs';
 import * as path from 'path';
+import { marked } from 'marked';
 
 @Injectable()
 export class PublisherService {
 
-  constructor(private readonly gitHubService: GitHubService) {}
+  constructor(private readonly gitHubService: GitHubService) { }
 
   async publish(post: PublishPost) {
 
-const slug = post.slug;
+    const slug = post.slug;
 
     const templatePath = path.join(
       process.cwd(),
@@ -31,11 +32,13 @@ const slug = post.slug;
       ? `
         <div class="blog-gallery">
           ${post.galleryImages
-            .map((img: string) => `<img src="${img}" alt="">`)
-            .join('')}
+        .map((img: string) => `<img src="${img}" alt="">`)
+        .join('')}
         </div>
         `
       : '';
+
+    const parsedContent = await marked.parse(post.content);
 
     const html = template
       .replace(/{{title}}/g, post.title)
@@ -43,8 +46,8 @@ const slug = post.slug;
       .replace(/{{date}}/g, post.date)
       .replace(/{{image}}/g, coverImageHtml)
       .replace(/{{gallery}}/g, galleryHtml)
-      .replace(/{{content}}/g, post.content);
-
+      .replace(/{{content}}/g, parsedContent);
+      
     await this.gitHubService.createOrUpdateFile(
       `blog/${slug}.html`,
       html,
