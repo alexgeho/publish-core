@@ -26,8 +26,8 @@ export class Post {
   @Prop()
   coverImage: string;
 
-  @Prop()
-  galleryImages: string;
+  @Prop({ type: [String], default: [] })
+  galleryImages: string[];
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);
