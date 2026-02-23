@@ -2,6 +2,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 export class CreatePostDto {
 
+  @ApiProperty({ example: 'my-first-article' })
+  slug: string;
+
   @ApiProperty({ example: 'My first article' })
   title: string;
 
@@ -13,5 +16,5 @@ export class CreatePostDto {
 
   @ApiProperty({ example: '2026-02-21T10:00:00.000Z' })
   date: string;
-  
+
 }

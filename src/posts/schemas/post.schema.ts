@@ -22,6 +22,12 @@ export class Post {
 
   @Prop({ default: 'draft' })
   status: 'draft' | 'published';
+
+  @Prop()
+  coverImage: string;
+
+  @Prop()
+  galleryImages: string;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

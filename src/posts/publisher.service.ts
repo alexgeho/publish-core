@@ -21,10 +21,28 @@ export class PublisherService {
 
     const template = fs.readFileSync(templatePath, 'utf-8');
 
+    const coverImageHtml = post.coverImage
+      ? `<div class="blog-image">
+           <img src="${post.coverImage}" alt="${post.title}" class="blog-cover">
+         </div>`
+      : '';
+
+    const galleryHtml = post.galleryImages && post.galleryImages.length
+      ? `
+        <div class="blog-gallery">
+          ${post.galleryImages
+            .map((img: string) => `<img src="${img}" alt="">`)
+            .join('')}
+        </div>
+        `
+      : '';
+
     const html = template
       .replace(/{{title}}/g, post.title)
       .replace(/{{excerpt}}/g, post.excerpt)
       .replace(/{{date}}/g, post.date)
+      .replace(/{{image}}/g, coverImageHtml)
+      .replace(/{{gallery}}/g, galleryHtml)
       .replace(/{{content}}/g, post.content);
 
     await this.gitHubService.createOrUpdateFile(
@@ -39,7 +57,6 @@ export class PublisherService {
   private async updateHomePage(post: PublishPost, slug: string) {
 
     const filePath = 'index.html';
-
     const existingFile = await this.gitHubService.getFileContent(filePath);
 
     const newCard = `
@@ -62,8 +79,8 @@ export class PublisherService {
 
     const existingCards = middle
       .split('<li class="blog-item">')
-      .filter(s => s.trim().length > 0)
-      .map(card => '<li class="blog-item">' + card.trim());
+      .filter((s: string) => s.trim().length > 0)
+      .map((card: string) => '<li class="blog-item">' + card.trim());
 
     const updatedCards = [newCard.trim(), ...existingCards].slice(0, 7);
 

@@ -3,4 +3,6 @@ export interface PublishPost {
   excerpt: string;
   content: string;
   date: string;
+  coverImage?: string;
+  galleryImages?: string[];
 }

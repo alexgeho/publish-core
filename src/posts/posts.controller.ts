@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
-import { PublisherService } from './publisher.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Posts')
@@ -10,15 +9,13 @@ export class PostsController {
 
   constructor(
     private readonly postsService: PostsService,
-    private readonly publisherService: PublisherService,
   ) {}
 
   // Save post to MongoDB as draft
   @Post()
   @ApiOperation({ summary: 'Save post as draft' })
   async create(@Body() body: CreatePostDto) {
-    const slug = this.publisherService.generateSlug(body.title);
-    return this.postsService.create(body, slug);
+    return this.postsService.create(body);
   }
 
   // Get all drafts for admin panel
@@ -32,9 +29,7 @@ export class PostsController {
   @Post(':id/publish')
   @ApiOperation({ summary: 'Publish draft to site' })
   async publish(@Param('id') id: string) {
-    const post = await this.postsService.markPublished(id);
-    if (!post) throw new Error(`Post ${id} not found`);
-    this.publisherService.publish(post);
+    await this.postsService.publishDraft(id);
     return { ok: true };
   }
 
