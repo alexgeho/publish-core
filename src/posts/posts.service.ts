@@ -13,54 +13,52 @@ export class PostsService {
     private readonly publisherService: PublisherService,
   ) {}
 
-  // Save new post to MongoDB with draft status
-async create(dto: CreatePostDto): Promise<Post> {
-  return this.postModel.create({
-    ...dto,
-    slug: dto.slug,
-    status: 'draft'
-  });
-}
+  async create(dto: CreatePostDto): Promise<Post> {
 
-  // Return all posts sorted by newest first
+    const slug = dto.title
+      .toLowerCase()
+      .replace(/å|ä/g, 'a')
+      .replace(/ö/g, 'o')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .replace(/\s+/g, '-');
+
+    return this.postModel.create({
+      ...dto,
+      slug,
+      status: 'draft'
+    });
+  }
+
   async findAll(): Promise<Post[]> {
     return this.postModel.find().sort({ createdAt: -1 });
   }
 
-  // Return only drafts for admin panel
   async findDrafts(): Promise<Post[]> {
     return this.postModel.find({ status: 'draft' }).sort({ createdAt: -1 });
   }
 
-  // Mark post as published
-  async markPublished(id: string): Promise<Post | null> {
-    return this.postModel.findByIdAndUpdate(
-      id,
-      { status: 'published' },
-      { new: true }
-    );
-  }
-
   async publishDraft(id: string) {
-  const draft = await this.postModel.findById(id);
 
-  if (!draft) {
-    throw new Error('Draft not found');
+    const draft = await this.postModel.findById(id);
+
+    if (!draft) {
+      throw new Error('Draft not found');
+    }
+
+    const galleryImagesArray = draft.galleryImages
+      ? draft.galleryImages.split(',').map(img => img.trim())
+      : [];
+
+    await this.publisherService.publish({
+      title: draft.title,
+      excerpt: draft.excerpt,
+      date: draft.date,
+      content: draft.content,
+      coverImage: draft.coverImage,
+      galleryImages: galleryImagesArray,
+      slug: draft.slug  
+    });
+
+    await draft.deleteOne();
   }
-
-  const galleryImagesArray = draft.galleryImages
-    ? draft.galleryImages.split(',').map((img: string) => img.trim())
-    : [];
-
-  await this.publisherService.publish({
-    title: draft.title,
-    excerpt: draft.excerpt,
-    date: draft.date,
-    content: draft.content,
-    coverImage: draft.coverImage,
-    galleryImages: galleryImagesArray
-  });
-
-  await draft.deleteOne();
-}
 }

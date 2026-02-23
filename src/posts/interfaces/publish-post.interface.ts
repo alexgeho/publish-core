@@ -5,4 +5,5 @@ export interface PublishPost {
   date: string;
   coverImage?: string;
   galleryImages?: string[];
+  slug: string; 
 }

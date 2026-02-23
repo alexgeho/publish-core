@@ -11,7 +11,7 @@ export class PublisherService {
 
   async publish(post: PublishPost) {
 
-    const slug = this.generateSlug(post.title);
+const slug = post.slug;
 
     const templatePath = path.join(
       process.cwd(),
