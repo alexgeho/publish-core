@@ -5,11 +5,13 @@ function initDate() {
 
 function collectEditorData() {
   return {
+    site: document.getElementById('site').value,
     title: document.getElementById('title').value.trim(),
     excerpt: document.getElementById('excerpt').value.trim(),
     date: document.getElementById('date').value,
     content: document.getElementById('content').value.trim(),
     coverImage: document.getElementById('coverImage').value.trim(),
+
     galleryImages: document
       .getElementById('galleryImages')
       .value
@@ -121,7 +123,8 @@ async function loadDrafts() {
 
 async function loadPublished() {
   try {
-    const res = await fetch('/posts/published');
+    const site = document.getElementById('site').value;
+    const res = await fetch('/posts/published?site=' + site);
     const posts = await res.json();
     const list = document.getElementById('articles-list');
 

@@ -20,6 +20,9 @@ export class Post {
   @Prop({ required: true })
   slug: string;
 
+  @Prop({ required: true })
+  site: string;
+
   @Prop({ default: 'draft' })
   status: 'draft' | 'published';
 
@@ -28,6 +31,9 @@ export class Post {
 
   @Prop({ type: [String], default: [] })
   galleryImages: string[];
+
 }
+
+
 
 export const PostSchema = SchemaFactory.createForClass(Post);

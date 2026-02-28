@@ -15,8 +15,8 @@ export class PostsService {
 
 
   /* FOR NEXT-JS */
-  async findBySlug(slug: string): Promise<Post | null> {
-    return this.postModel.findOne({ slug, status: 'published' });
+  async findBySlug(slug: string, site: string): Promise<Post | null> {
+    return this.postModel.findOne({ slug, status: 'published', site });
   }
   /* FOR NEXT-JS END*/
 
@@ -41,9 +41,9 @@ export class PostsService {
     });
   }
 
-  async findPublished(): Promise<Post[]> {
+  async findPublished(site: string): Promise<Post[]> {
     return this.postModel
-      .find({ status: 'published' })
+      .find({ status: 'published', site })
       .sort({ createdAt: -1 });
   }
 
@@ -69,7 +69,8 @@ export class PostsService {
       content: draft.content,
       coverImage: draft.coverImage,
       galleryImages: draft.galleryImages || [],
-      slug: draft.slug
+      slug: draft.slug,
+      site: draft.site
     });
 
     draft.status = 'published';

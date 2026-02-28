@@ -17,4 +17,6 @@ export class CreatePostDto {
   @ApiProperty({ example: '2026-02-21T10:00:00.000Z' })
   date: string;
 
+  @ApiProperty({ example: 'byggexp-next' })
+  site: string;
 }

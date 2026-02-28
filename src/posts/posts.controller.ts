@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Query } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
@@ -50,16 +50,18 @@ export class PostsController {
   }
 
   @Get('published')
-  async getPublished() {
-    return this.postsService.findPublished();
+  async getPublished(@Query('site') site: string) {
+    return this.postsService.findPublished(site);
   }
 
   /* FOR NEXT-JS */
   // Get single post by slug for article page
   @Get(':slug')
-  @ApiOperation({ summary: 'Get post by slug' })
-  async findBySlug(@Param('slug') slug: string) {
-    return this.postsService.findBySlug(slug);
+  async findBySlug(
+    @Param('slug') slug: string,
+    @Query('site') site: string
+  ) {
+    return this.postsService.findBySlug(slug, site);
   }
   /* FOR NEXT-JS END*/
 
