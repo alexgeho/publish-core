@@ -13,6 +13,13 @@ export class PostsService {
     private readonly publisherService: PublisherService,
   ) { }
 
+
+  /* FOR NEXT-JS */
+  async findBySlug(slug: string): Promise<Post | null> {
+    return this.postModel.findOne({ slug, status: 'published' });
+  }
+  /* FOR NEXT-JS END*/
+
   async deletePublishedPost(slug: string) {
     await this.publisherService.deletePost(slug);
     await this.postModel.deleteOne({ slug });
@@ -49,23 +56,23 @@ export class PostsService {
   }
 
   async publishDraft(id: string) {
-  const draft = await this.postModel.findById(id);
+    const draft = await this.postModel.findById(id);
 
-  if (!draft) {
-    throw new Error('Draft not found');
+    if (!draft) {
+      throw new Error('Draft not found');
+    }
+
+    await this.publisherService.publish({
+      title: draft.title,
+      excerpt: draft.excerpt,
+      date: draft.date,
+      content: draft.content,
+      coverImage: draft.coverImage,
+      galleryImages: draft.galleryImages || [],
+      slug: draft.slug
+    });
+
+    draft.status = 'published';
+    await draft.save();
   }
-
-  await this.publisherService.publish({
-    title: draft.title,
-    excerpt: draft.excerpt,
-    date: draft.date,
-    content: draft.content,
-    coverImage: draft.coverImage,
-    galleryImages: draft.galleryImages || [],
-    slug: draft.slug
-  });
-
-  draft.status = 'published';
-  await draft.save();
-}
 }

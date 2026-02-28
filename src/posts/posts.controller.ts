@@ -11,6 +11,10 @@ export class PostsController {
     private readonly postsService: PostsService,
   ) { }
 
+
+
+
+
   // Save post to MongoDB as draft
   @Post()
   @ApiOperation({ summary: 'Save post as draft' })
@@ -49,6 +53,15 @@ export class PostsController {
   async getPublished() {
     return this.postsService.findPublished();
   }
+
+  /* FOR NEXT-JS */
+  // Get single post by slug for article page
+  @Get(':slug')
+  @ApiOperation({ summary: 'Get post by slug' })
+  async findBySlug(@Param('slug') slug: string) {
+    return this.postsService.findBySlug(slug);
+  }
+  /* FOR NEXT-JS END*/
 
 }
 
