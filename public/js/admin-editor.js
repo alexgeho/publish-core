@@ -11,7 +11,6 @@ function collectEditorData() {
     date: document.getElementById('date').value,
     content: document.getElementById('content').value.trim(),
     coverImage: document.getElementById('coverImage').value.trim(),
-
     galleryImages: document
       .getElementById('galleryImages')
       .value
@@ -76,7 +75,7 @@ async function loadDrafts() {
     const list = document.getElementById('drafts-list');
 
     if (!drafts.length) {
-      list.innerHTML = '<p>No drafts</p>';
+      list.innerHTML = '<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No drafts</p>';
       return;
     }
 
@@ -86,15 +85,22 @@ async function loadDrafts() {
       const card = document.createElement('div');
       card.className = 'draft-card';
 
+      // Left: title + date only
       const info = document.createElement('div');
-      info.className = 'draft-info';
+      info.style.minWidth = '0';
 
-      const title = document.createElement('h3');
+      const title = document.createElement('div');
+      title.className = 'draft-title';
       title.textContent = d.title;
 
-      const meta = document.createElement('p');
-      meta.textContent = d.date + ' · ' + d.excerpt;
+      const date = document.createElement('div');
+      date.className = 'draft-meta';
+      date.textContent = d.date;
 
+      info.appendChild(title);
+      info.appendChild(date);
+
+      // Publish button
       const btn = document.createElement('button');
       btn.className = 'btn btn-publish';
       btn.textContent = 'Publish';
@@ -102,18 +108,14 @@ async function loadDrafts() {
         handlePublish(d._id);
       });
 
-      info.appendChild(title);
-      info.appendChild(meta);
-
       card.appendChild(info);
       card.appendChild(btn);
-
       list.appendChild(card);
     });
 
   } catch {
     document.getElementById('drafts-list').innerHTML =
-      '<p>Error loading drafts</p>';
+      '<p style="color:var(--muted)">Error loading drafts</p>';
   }
 }
 
@@ -129,35 +131,31 @@ async function loadPublished() {
     const list = document.getElementById('articles-list');
 
     if (!posts.length) {
-      list.innerHTML = '<p>No articles</p>';
+      list.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">No articles</td></tr>';
       return;
     }
 
     list.innerHTML = '';
 
     posts.forEach(function (post) {
-      const div = document.createElement('div');
-      div.style.marginBottom = '15px';
-
-      div.innerHTML = `
-        <strong>${post.title}</strong>
-        <button onclick="deletePublished('${post.slug}')">
-          Delete
-        </button>
-      `;
-
-      list.appendChild(div);
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + post.title + '</td>' +
+        '<td style="color:var(--muted);font-family:DM Mono,monospace;font-size:12px">' + (post.site || '—') + '</td>' +
+        '<td style="color:var(--muted);font-family:DM Mono,monospace;font-size:12px">' + post.date + '</td>' +
+        '<td><span class="status-badge status-published">published</span></td>' +
+        '<td><button class="btn btn-delete" onclick="deletePublished(\'' + post.slug + '\')">Delete</button></td>';
+      list.appendChild(tr);
     });
 
   } catch {
     document.getElementById('articles-list').innerHTML =
-      '<p>Error loading articles</p>';
+      '<tr><td colspan="5" style="color:var(--muted)">Error loading articles</td></tr>';
   }
 }
 
 async function deletePublished(slug) {
   if (!confirm('Delete this article?')) return;
-
   await fetch('/posts/' + slug, { method: 'DELETE' });
   loadPublished();
 }

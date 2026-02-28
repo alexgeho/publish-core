@@ -1,94 +1,483 @@
 <!DOCTYPE html>
 <html lang="sv">
-
 <head>
   <meta charset="UTF-8">
-  <title>Publish Post</title>
+  <title>Content Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  <link rel="stylesheet" href="/css/admin.css">
+    :root {
+      --bg: #0e0f11;
+      --surface: #16181c;
+      --surface2: #1e2026;
+      --border: #2a2d35;
+      --accent: #4f7cff;
+      --accent-dim: rgba(79,124,255,0.12);
+      --green: #3ecf8e;
+      --red: #f25f5c;
+      --text: #e8eaf0;
+      --muted: #6b7280;
+      --label: #9ca3af;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 220px 1fr;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 28px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .sidebar-logo {
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0 12px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+      width: 100%;
+    }
+
+    .nav-btn:hover { background: var(--surface2); color: var(--text); }
+
+    .nav-btn.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* MAIN */
+    .main {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .topbar {
+      padding: 20px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .topbar h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .site-badge {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(79,124,255,0.25);
+    }
+
+    /* TABS */
+    .tab-content { display: none; padding: 32px; }
+    .tab-content.active { display: block; }
+
+    /* EDITOR LAYOUT */
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--label);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 20px;
+    }
+
+    .field { margin-bottom: 16px; }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--label);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    select option { background: var(--surface); }
+
+    textarea {
+      min-height: 280px;
+      resize: vertical;
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+      padding: 12px;
+    }
+
+    .btn-primary:hover { opacity: 0.88; }
+
+    .btn-publish {
+      background: var(--green);
+      color: #0e0f11;
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px;
+    }
+
+    .btn-delete {
+      background: transparent;
+      color: var(--red);
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 6px;
+      border: 1px solid rgba(242,95,92,0.3);
+    }
+
+    .btn-delete:hover { background: rgba(242,95,92,0.1); }
+
+    #result {
+      margin-top: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+    }
+
+    #result.ok { background: rgba(62,207,142,0.1); color: var(--green); border: 1px solid rgba(62,207,142,0.2); }
+    #result.err { background: rgba(242,95,92,0.1); color: var(--red); border: 1px solid rgba(242,95,92,0.2); }
+
+    /* DRAFTS */
+    .draft-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: border-color 0.15s;
+    }
+
+    .draft-card:hover { border-color: var(--accent); }
+
+    .draft-title { font-size: 14px; font-weight: 500; margin-bottom: 3px; }
+
+    .draft-meta {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+    }
+
+    .draft-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    /* ARTICLES TABLE */
+    .articles-table { width: 100%; border-collapse: collapse; }
+
+    .articles-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .articles-table td {
+      padding: 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-family: 'DM Mono', monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .status-published { background: rgba(62,207,142,0.1); color: var(--green); }
+    .status-draft { background: rgba(255,200,50,0.1); color: #ffc832; }
+
+    /* AI */
+    .ai-output {
+      margin-top: 20px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      font-size: 14px;
+      line-height: 1.7;
+      min-height: 100px;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+
+    .loading { color: var(--accent); animation: pulse 1.2s ease infinite; }
+
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      padding: 32px;
+    }
+  </style>
 </head>
-
 <body>
 
-  <h1>Content Manager</h1>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="editor">Editor</button>
-    <button class="tab-btn" data-tab="ai">AI Generator</button>
-    <button class="tab-btn" data-tab="articles">All Articles</button>
-  </div>
-
-  <!-- EDITOR -->
-  <div class="tab-content active" id="editor">
-
-    <label>Site</label>
-    <select id="site">
-      <option value="byggexp-next">byggexp.se (Next.js)</option>
-      <option value="villatakservice-html">villatakservice.se (HTML)</option>
-    </select>
-
-    <label>Cover Image (optional)</label>
-    <input type="text" id="coverImage">
-
-    <label>Title</label>
-    <input type="text" id="title">
-
-    <label>Excerpt</label>
-    <input type="text" id="excerpt">
-
-    <label>Date</label>
-    <input type="date" id="date">
-
-    <label>Gallery Images (optional, comma separated)</label>
-    <input type="text" id="galleryImages">
-
-    <label>Content (HTML)</label>
-    <textarea id="content"></textarea>
-
-    <button class="btn btn-primary" id="saveDraftBtn">
-      Save Draft
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">⬡ Publish Core</div>
+    <button class="nav-btn active" data-tab="editor">
+      <span class="nav-icon">✏️</span> Editor
     </button>
+    <button class="nav-btn" data-tab="ai">
+      <span class="nav-icon">✦</span> AI Generator
+    </button>
+    <button class="nav-btn" data-tab="articles">
+      <span class="nav-icon">◈</span> All Articles
+    </button>
+  </aside>
 
-    <div id="result"></div>
+  <!-- MAIN -->
+  <div class="main">
 
-    <div class="drafts">
-      <h2>Drafts</h2>
-      <div id="drafts-list">Loading...</div>
+    <div class="topbar">
+      <h1 id="page-title">Editor</h1>
+      <span class="site-badge" id="site-display">byggexp.se</span>
+    </div>
+
+    <!-- EDITOR TAB -->
+    <div class="tab-content active" id="editor">
+      <div class="editor-grid">
+
+        <!-- LEFT: FORM -->
+        <div>
+          <div class="card" style="margin-bottom:24px">
+            <div class="card-title">Post Details</div>
+
+            <div class="field">
+              <label>Site</label>
+              <select id="site">
+                <option value="byggexp-next">byggexp.se (Next.js)</option>
+                <option value="villatakservice-html">villatakservice.se (HTML)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Title</label>
+              <input type="text" id="title" placeholder="Enter post title...">
+            </div>
+
+            <div class="field">
+              <label>Excerpt</label>
+              <input type="text" id="excerpt" placeholder="Short description...">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div class="field">
+                <label>Date</label>
+                <input type="date" id="date">
+              </div>
+              <div class="field">
+                <label>Cover Image (URL)</label>
+                <input type="text" id="coverImage" placeholder="https://...">
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Gallery Images (comma separated URLs)</label>
+              <input type="text" id="galleryImages" placeholder="https://img1.jpg, https://img2.jpg">
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Content</div>
+            <div class="field">
+              <textarea id="content" placeholder="<p>Write your article content here...</p>"></textarea>
+            </div>
+            <button class="btn btn-primary" id="saveDraftBtn">Save Draft</button>
+            <div id="result"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: DRAFTS -->
+        <div class="card">
+          <div class="card-title">Drafts</div>
+          <div id="drafts-list"><div class="empty-state">Loading...</div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- AI TAB -->
+    <div class="tab-content" id="ai">
+      <div style="max-width:680px">
+        <div class="card">
+          <div class="card-title">AI Article Generator</div>
+
+          <div class="field">
+            <label>Topic / Title</label>
+            <input type="text" id="ai-title" placeholder="e.g. Takrenovering i Stockholm 2026">
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="field">
+              <label>Approx. characters</label>
+              <input type="number" id="ai-length" value="2000">
+            </div>
+            <div class="field">
+              <label>Language</label>
+              <input type="text" id="ai-language" value="sv">
+            </div>
+          </div>
+
+          <button class="btn btn-primary" id="generateBtn">✦ Generate Article</button>
+        </div>
+
+        <div class="ai-output" id="ai-result">Generated content will appear here...</div>
+      </div>
+    </div>
+
+    <!-- ARTICLES TAB -->
+    <div class="tab-content" id="articles">
+      <div class="card">
+        <div class="card-title">All Articles</div>
+        <table class="articles-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Site</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="articles-list">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
   </div>
-
-  <!-- AI -->
-  <div class="tab-content" id="ai">
-
-    <label>Title</label>
-    <input type="text" id="ai-title">
-
-    <label>Approx. characters</label>
-    <input type="number" id="ai-length" value="2000">
-
-    <label>Language</label>
-    <input type="text" id="ai-language" value="sv">
-
-    <button class="btn btn-primary" id="generateBtn">
-      Generate Article
-    </button>
-
-    <div id="ai-result"></div>
-
-  </div>
-
-  <!-- All Articles -->
-  <div class="tab-content" id="articles">
-    <h2>All Articles</h2>
-    <div id="articles-list">Loading...</div>
-  </div>
-  <!-- All Articles end -->
 
   <script src="/js/admin-tabs.js"></script>
   <script src="/js/admin-editor.js"></script>
   <script src="/js/admin-ai.js"></script>
 
-</body>
+  <script>
+    // Tab switching
+    document.querySelectorAll('.nav-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        const tab = btn.dataset.tab;
+        document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+        btn.classList.add('active');
+        document.getElementById(tab).classList.add('active');
+        document.getElementById('page-title').textContent = btn.textContent.trim();
+      });
+    });
 
+    // Set today's date
+    document.getElementById('date').value = new Date().toISOString().split('T')[0];
+
+    // Update site badge
+    document.getElementById('site').addEventListener('change', function() {
+      const labels = { 'byggexp-next': 'byggexp.se', 'villatakservice-html': 'villatakservice.se' };
+      document.getElementById('site-display').textContent = labels[this.value] || this.value;
+    });
+  </script>
+
+</body>
 </html>
